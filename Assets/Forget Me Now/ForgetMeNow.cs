@@ -41,7 +41,7 @@ public class ForgetMeNow : MonoBehaviour {
     private int moduleStrikes = 0; // Number of times module has struck
 
     // Testing purposes only
-    private const int STAGES = 24;
+    private const int STAGES = 46;
     private const bool USETEST = false; // false
     private const bool FASTMODE = false; // false
 
@@ -64,9 +64,20 @@ public class ForgetMeNow : MonoBehaviour {
     // Stage display delay
     private float[] delay = { 2.0f, 1.75f, 1.75f, 1.75f, 1.5f, 1.5f, 1.5f, 1.5f, 1.5f, 1.5f, 1.5f, 1.5f, 1.25f, 1.25f, 1.25f, 1.25f, 1.25f, 1.25f, 1.25f, 1.25f, 1.0f };
 
+    // Mod settings
+    private ForgetMeNowSetings Settings;
+    sealed class ForgetMeNowSetings {
+        public bool VineBoom = false;
+    }
+
     // Ran as bomb loads
     private void Awake() {
         moduleId = moduleIdCounter++;
+
+        // Module Settings
+        var modConfig = new ModConfig<ForgetMeNowSetings>("ForgetMeNow");
+        Settings = modConfig.Settings;
+        modConfig.Settings = Settings;
 
         // Delegation
         for (int i = 0; i < Buttons.Length; i++) {
@@ -234,11 +245,14 @@ public class ForgetMeNow : MonoBehaviour {
 
                         if (rand == 0) Audio.PlaySoundAtTransform("FMNow_TripleStrike2", transform);
                         else Audio.PlaySoundAtTransform("FMNow_TripleStrike1", transform);
-                }
+                    }
 
                     else
                         Audio.PlaySoundAtTransform("FMNow_ThisIsntCorrect", transform);
-                    
+
+                    if (Settings.VineBoom)
+                        Audio.PlaySoundAtTransform("FMNow_VineBoom", transform);
+
                     GetComponent<KMBombModule>().HandleStrike();
                     litButton = displayDigits[stage];
                     UpdateLED();
@@ -258,7 +272,10 @@ public class ForgetMeNow : MonoBehaviour {
                     else
                         Audio.PlaySoundAtTransform("FMNow_Autosolve", transform);
 
-                     GetComponent<KMBombModule>().HandlePass();
+                    if (Settings.VineBoom)
+                        Audio.PlaySoundAtTransform("FMNow_VineBoom", transform);
+
+                    GetComponent<KMBombModule>().HandlePass();
                     hereWeGo = false;
                 }
 
@@ -309,6 +326,9 @@ public class ForgetMeNow : MonoBehaviour {
             else
                 Audio.PlaySoundAtTransform("FMNow_Bass", transform);
 
+            if (Settings.VineBoom || FASTMODE == true)
+                Audio.PlaySoundAtTransform("FMNow_VineBoom", transform);
+
             // Delay between the displayed digits
             if (autosolved == true || FASTMODE == true)
                 yield return new WaitForSeconds(0.05f);
@@ -336,6 +356,9 @@ public class ForgetMeNow : MonoBehaviour {
         DisplayInputScreen();
         Audio.PlaySoundAtTransform("FMNow_Bass", transform);
         hereWeGo = true;
+
+        if (Settings.VineBoom)
+            Audio.PlaySoundAtTransform("FMNow_VineBoom", transform);
     }
 
 
@@ -400,6 +423,9 @@ public class ForgetMeNow : MonoBehaviour {
         UpdateLED();
         StageScreen.text = "--";
         Audio.PlaySoundAtTransform("FMNow_Reset", transform);
+
+        if (Settings.VineBoom)
+            Audio.PlaySoundAtTransform("FMNow_VineBoom", transform);
 
         yield return new WaitForSeconds(1.0f);
 
