@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using KModkit;
+using System.Xml;
 
 public class ForgetMeNow : MonoBehaviour {
     public KMAudio Audio;
@@ -41,7 +42,7 @@ public class ForgetMeNow : MonoBehaviour {
     private int moduleStrikes = 0; // Number of times module has struck
 
     // Testing purposes only
-    private const int STAGES = 46;
+    private const int STAGES = 3;
     private const bool USETEST = false; // false
     private const bool FASTMODE = false; // false
 
@@ -275,6 +276,9 @@ public class ForgetMeNow : MonoBehaviour {
                     if (Settings.VineBoom)
                         Audio.PlaySoundAtTransform("FMNow_VineBoom", transform);
 
+                    if (Bomb.GetSolvableModuleNames().Contains("Souvenir"))
+                        StartCoroutine(ScreenReset());
+
                     GetComponent<KMBombModule>().HandlePass();
                     hereWeGo = false;
                 }
@@ -326,7 +330,7 @@ public class ForgetMeNow : MonoBehaviour {
             else
                 Audio.PlaySoundAtTransform("FMNow_Bass", transform);
 
-            if (Settings.VineBoom || FASTMODE == true)
+            if (Settings.VineBoom && FASTMODE == false)
                 Audio.PlaySoundAtTransform("FMNow_VineBoom", transform);
 
             // Delay between the displayed digits
@@ -447,24 +451,12 @@ public class ForgetMeNow : MonoBehaviour {
 
     // Display screen resets
     private IEnumerator ScreenReset() {
-        int intValue = Math.Min(23, moduleCount - 1);
-        for (int value = intValue; value >= 0; value--) {
-            string str = "";
+        string screenText = InputScreen.text;
+        int screenTextLength = screenText.Length;
 
-            for (int i = 1; i <= value; i++) {
-                str += "-";
-
-                if (i % 3 == 0) {
-                    if (i % 12 == 0)
-                        str += "\n";
-
-                    else
-                        str += " ";
-                }
-            }
-
-            InputScreen.text = str;
-            yield return new WaitForSeconds(3.0f / (intValue + 1));
+        for (int i = screenTextLength - 1; i >= 0; i--) {
+            InputScreen.text = screenText.Substring(0, i);
+            yield return new WaitForSeconds(3.0f / screenTextLength);
         }
     }
 
